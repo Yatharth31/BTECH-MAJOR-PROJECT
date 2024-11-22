@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Speech Processing</title>
+</head>
+<body>
+    <h1>Upload Audio File</h1>
+    <form action="/process" method="post" enctype="multipart/form-data">
+        <input type="file" name="audio_file" accept="audio/*" required>
+        <button type="submit">Process</button>
+    </form>
+</body>
+</html>

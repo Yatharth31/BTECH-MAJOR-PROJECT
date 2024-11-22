@@ -22,6 +22,6 @@ def text_to_speech_with_cloning(text, output_file="cloned_voice_audio.wav", spea
 
 
 if __name__ == "__main__":
-    output_audio_file = "E:/1_BTech/Major_Project/Developement-Code/cloned_voice_sample.wav"
+    output_audio_file = "E:/1_BTech/Major_Project/FINAL/cloned_voice.wav"
 
-    text_to_speech_with_cloning("Clubs and Balls and cities, Grew to be only memories", output_file=output_audio_file, speaker_wav_path=f"E:/1_BTech/Major_Project/Developement-Code/train_marathifemale_00955.wav",language="en")
+    text_to_speech_with_cloning("Clubs and Balls and cities, Grew to be only memories", output_file=output_audio_file, speaker_wav_path=f"E:/1_BTech/Major_Project/FINAL/train_marathifemale_00955.wav",language="en")

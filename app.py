@@ -17,9 +17,9 @@ warnings.filterwarnings('ignore')
 
 if __name__=="__main__":
     print("Loading model...")
-    model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-small")  # Use any model architecture
+    model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-large-v3")  # Use any model architecture
 
-    safetensor_path = "E:/1_BTech/Major_Project/Developement-Code/FINAL/model/model.safetensors"  # Path to your saved safetensors file
+    safetensor_path = "E:/1_BTech/Major_Project/FINAL/model/model_whisper.safetensors"  # Path to your saved safetensors file
     tensors = {}
 
     with safe_open(safetensor_path, framework="pt", device="cpu") as f:
@@ -27,7 +27,7 @@ if __name__=="__main__":
             tensors[k] = f.get_tensor(k)
     print("Model loaded successfully...")
     
-    audio_file_path = "./train_hindimale_00650.wav" 
+    audio_file_path = "./uploads/train_hindimale_00650.wav" 
     result = speech_to_text(audio_file_path)
     speech_text = result["text"]
     print("Transcription:", speech_text)
