@@ -114,7 +114,7 @@ language_codes = {
 }
 
 
-def text_to_text_translation(input_text, input_language, output_language):
+def text_to_text_translation(input_text, input_language, output_language="en"):
     transliterated_text = transliterate_text(input_text, lang_code=input_language) if input_language not in ('auto', 'en') else input_text
     
     translated_text = GoogleTranslator(source=input_language, target=output_language).translate(text=transliterated_text)

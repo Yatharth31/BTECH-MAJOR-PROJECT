@@ -3,7 +3,7 @@ from langdetect import detect
 from Text_to_Text.text_to_text import text_to_text_translation
 from Text_to_Speech.TTS.sample_2_cloning import text_to_speech_with_cloning
 API_URL = "https://api-inference.huggingface.co/models/openai/whisper-large-v3"
-headers = {"Authorization": "Bearer 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"}
+headers = {"Authorization": "Bearer hf_OvPKZFkpRMkistcJJvArQmNvjCIZSAuBfzj"}
 
 def query(filename):
     with open(filename, "rb") as f:

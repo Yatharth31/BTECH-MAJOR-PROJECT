@@ -4,28 +4,34 @@ import threading
 import torch
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
 from safetensors import safe_open
-from speech_to_text import speech_to_text, infer_language, speech_activity_detection
+from speech_to_text import speech_to_text, infer_language, speech_activity_detection, transcribe_audio
 from text_to_speech import text_to_speech_with_cloning
 from text_to_text import text_to_text_translation
 from Text_to_ISL.convert2isl import convert_to_isl
 from audio_enhancement import convert_to_wav
 
 app = Flask(__name__)
+# Initialize model and processor variables globally
+model = None
+processor = None
 
-# # Load the model once when the server starts
-# print("Loading model...")
-# model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-large-v3")
-# safetensor_path = "E:/1_BTech/Major_Project/FINAL/model/model_whisper.safetensors"
-# tensors = {}
-# with safe_open(safetensor_path, framework="pt", device="cpu") as f:
-#     for k in f.keys():
-#         tensors[k] = f.get_tensor(k)
+def load_model():
+    global model, processor
+    try:
+        print("Loading Whisper model...")
+        model = WhisperForConditionalGeneration.from_pretrained("openai/whisper-large-v3")
+        safetensor_path = "E:/1_BTech/Major_Project/FINAL/model/model_whisper.safetensors"
+        tensors = {}
+        with safe_open(safetensor_path, framework="pt", device="cpu") as f:
+            for k in f.keys():
+                tensors[k] = f.get_tensor(k)
+        model.load_state_dict(tensors, strict=False)
+        processor = WhisperProcessor.from_pretrained("openai/whisper-large-v3")
+        print("Whisper model loaded successfully.")
+    except Exception as e:
+        print(f"Error loading model: {str(e)}")
 
-# model.load_state_dict(tensors, strict=False)
-# processor = WhisperProcessor.from_pretrained("openai/whisper-large-v3")
-                
 
-print("Model loaded successfully...")
 
 
 @app.route("/")
@@ -35,6 +41,8 @@ def index():
 
 @app.route("/process", methods=["POST"])
 def process_audio():
+    if model is None or processor is None:
+        return jsonify({"error": "Model is not loaded correctly"}), 500
     if "audio_file" not in request.files:
         return jsonify({"error": "No file part"}), 400
 
@@ -100,4 +108,4 @@ def process_audio():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)

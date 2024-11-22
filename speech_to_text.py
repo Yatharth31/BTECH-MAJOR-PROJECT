@@ -12,22 +12,22 @@ load_dotenv()
 url = os.getenv("LOCATION")
 token = os.getenv("HF_TOKEN")
 # Global model variable to hold the model
-model = None
+model_voice = None
 utils = None
 
 # Load model only once when the Flask app starts
-def load_model():
+def load_voice_model():
     global model, utils
-    print("Loading model...")
-    model, utils = torch.hub.load(
+    print("Loading voice detection model...")
+    model_voice, utils = torch.hub.load(
         repo_or_dir='snakers4/silero-vad', 
         model='silero_vad', 
         force_reload=False  # Cache the model
     )
-    print("Model loaded successfully!")
+    print("Voice detection model loaded successfully!")
 
 # Call load_model function when the app starts
-load_model()
+load_voice_model()
 
 # Extract utils for later use
 get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks = utils
@@ -57,7 +57,7 @@ def speech_to_text(filename):
         data = f.read()
     response = requests.post(
         url, 
-        headers={"Authorization": f"Bearer {token}"},  # Ensure using a token from .env file
+        headers={"Authorization": "Bearer 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"},
         data=data
     )
     print(response.json())
@@ -66,7 +66,7 @@ def speech_to_text(filename):
 # Speech Activity Detection using Silero VAD
 def speech_activity_detection(filepath):
     wav = read_audio(filepath, sampling_rate=16000)
-    speech_timestamps = get_speech_timestamps(wav, model)
+    speech_timestamps = get_speech_timestamps(wav, model_voice)
     
     if speech_timestamps:
         return True
