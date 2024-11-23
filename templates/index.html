@@ -1,13 +1,161 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <title>Speech Processing</title>
-</head>
-<body>
-    <h1>Upload Audio File</h1>
-    <form action="/process" method="post" enctype="multipart/form-data">
-        <input type="file" name="audio_file" accept="audio/*" required>
-        <button type="submit">Process</button>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Audio Processing</title>
+  </head>
+  <body>
+    <h1>Audio Processing with Whisper</h1>
+
+    <!-- Record Audio Section -->
+    <h2>Record Audio</h2>
+    <button id="recordButton">Start Recording</button>
+    <button id="stopButton" disabled>Stop Recording</button>
+    <audio id="audioPlayback" controls style="display: none"></audio>
+    <br />
+
+    <form id="recordedFileForm" style="display: none">
+      <input type="hidden" id="audioBlob" name="audio_file" />
+      <button type="submit">Submit Recording</button>
     </form>
-</body>
+
+    <!-- Upload Audio File Section -->
+    <h2>Upload Audio File</h2>
+    <form
+      id="uploadFileForm"
+      method="POST"
+      enctype="multipart/form-data"
+      action="/process"
+    >
+      <input type="file" name="audio_file" accept="audio/*" required />
+      <button type="submit">Upload</button>
+    </form>
+
+    <!-- <script>
+    let mediaRecorder;
+    let audioChunks = [];
+    const recordButton = document.getElementById("recordButton");
+    const stopButton = document.getElementById("stopButton");
+    const audioPlayback = document.getElementById("audioPlayback");
+    const recordedFileForm = document.getElementById("recordedFileForm");
+
+    recordButton.addEventListener("click", async () => {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunks.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        audioPlayback.src = audioUrl;
+        audioPlayback.style.display = "block";
+
+        // Prepare to send the audio to the server
+        const formData = new FormData();
+        formData.append("audio_file", audioBlob, "recorded_audio.wav");
+
+        // Submit the form programmatically
+        fetch("/save_audio", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.error) {
+              alert("Error: " + data.error);
+            } else {
+              alert("Recording processed successfully: " + JSON.stringify(data));
+            }
+          })
+          .catch((err) => console.error(err));
+      };
+
+      mediaRecorder.start();
+      recordButton.disabled = true;
+      stopButton.disabled = false;
+    });
+
+    stopButton.addEventListener("click", () => {
+      mediaRecorder.stop();
+      recordButton.disabled = false;
+      stopButton.disabled = true;
+      audioChunks = [];
+    });
+  </script> -->
+    <script>
+      var gumStream;
+      var mediaRecorder;
+      var audioChunks = [];
+
+      var recordButton = document.getElementById("recordButton");
+      var stopButton = document.getElementById("stopButton");
+
+      recordButton.addEventListener("click", startRecording);
+      stopButton.addEventListener("click", stopRecording);
+
+      function startRecording() {
+        recordButton.disabled = true;
+        stopButton.disabled = false;
+
+        var constraints = { audio: true, video: false };
+
+        navigator.mediaDevices
+          .getUserMedia(constraints)
+          .then(function (stream) {
+            gumStream = stream;
+            mediaRecorder = new MediaRecorder(stream, {
+              mimeType: "audio/webm",
+            });
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = function (e) {
+              if (e.data.size > 0) {
+                audioChunks.push(e.data);
+              }
+            };
+
+            mediaRecorder.start();
+          })
+          .catch(function (err) {
+            console.error("Error accessing microphone: ", err);
+            recordButton.disabled = false;
+            stopButton.disabled = true;
+          });
+      }
+
+      function stopRecording() {
+        stopButton.disabled = true;
+        recordButton.disabled = false;
+
+        mediaRecorder.stop();
+        gumStream.getAudioTracks()[0].stop();
+
+        mediaRecorder.onstop = function () {
+          var blob = new Blob(audioChunks, { type: "audio/webm" });
+          uploadAudio(blob);
+        };
+      }
+
+      function uploadAudio(blob) {
+        var formData = new FormData();
+        formData.append("audio_file", blob, "recorded_audio.webm");
+
+        fetch("/save_audio", {
+          method: "POST",
+          body: formData,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Audio uploaded successfully:", data);
+          })
+          .catch((error) => {
+            console.error("Error uploading audio:", error);
+          });
+      }
+    </script>
+  </body>
 </html>

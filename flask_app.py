@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 import os
 import threading
+import subprocess
 import torch
 from transformers import WhisperForConditionalGeneration, WhisperProcessor
 from safetensors import safe_open
@@ -38,11 +39,59 @@ def load_model():
 def index():
     return render_template("index.html")  
 
+@app.route("/save_audio", methods=["POST"])
+def save_audio():
+    try:
+        if "audio_file" not in request.files:
+            return jsonify({"error": "No file part"}), 400
+
+        file = request.files["audio_file"]
+        if file.filename == "":
+            file.filename = "recorded_audio.wav"
+
+        # Debugging logs
+        print(f"Received file: {file.filename}")
+
+        # Save the file
+        upload_folder = os.path.join(os.getcwd(), "uploads")
+        os.makedirs(upload_folder, exist_ok=True)
+        file_path = os.path.join(upload_folder, file.filename)
+        print(f"Saving file to: {file_path}")
+        file.save(file_path)
+        try:
+            output_path = os.path.splitext(file_path)[0] + "_converted.wav"
+            command = [
+                "ffmpeg", "-y", "-i", file_path,  # Input file
+                "-ar", "16000",  # Resample to 16 kHz
+                "-ac", "1",      # Convert to mono
+                output_path      # Output WAV file
+            ]
+            subprocess.run(command, check=True)
+            print(f"File converted to WAV: {output_path}")
+            return output_path
+        except subprocess.CalledProcessError as e:
+            raise Exception(f"Error converting to WAV: {str(e)}")
+        # Simulating call to /process
+        response = app.test_client().post(
+            "/process",
+            data={"audio_file": (open(file_path, "rb"), file.filename)},
+            content_type="multipart/form-data",
+        )
+        print(f"Response from /process: {response.status_code}, {response.data}")
+
+        if response.status_code == 200:
+            return jsonify({"message": "File processed successfully", "result": response.json}), 200
+        else:
+            return jsonify({"error": "Error processing file"}), 500
+    except Exception as e:
+        print(f"Exception occurred: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/process", methods=["POST"])
 def process_audio():
-    if model is None or processor is None:
-        return jsonify({"error": "Model is not loaded correctly"}), 500
+    print("Request form:", request.form)
+    print("Request files:", request.files)
     if "audio_file" not in request.files:
         return jsonify({"error": "No file part"}), 400
 
@@ -108,4 +157,4 @@ def process_audio():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True,use_reloader=True)

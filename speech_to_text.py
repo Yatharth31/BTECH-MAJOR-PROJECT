@@ -11,23 +11,14 @@ load_dotenv()
 
 url = os.getenv("LOCATION")
 token = os.getenv("HF_TOKEN")
-# Global model variable to hold the model
-model_voice = None
-utils = None
 
-# Load model only once when the Flask app starts
-def load_voice_model():
-    global model, utils
-    print("Loading voice detection model...")
-    model_voice, utils = torch.hub.load(
-        repo_or_dir='snakers4/silero-vad', 
-        model='silero_vad', 
-        force_reload=False  # Cache the model
-    )
-    print("Voice detection model loaded successfully!")
-
-# Call load_model function when the app starts
-load_voice_model()
+print("Loading voice detection model...")
+model_voice, utils = torch.hub.load(
+    repo_or_dir='snakers4/silero-vad', 
+    model='silero_vad', 
+    force_reload=False 
+)
+print("Voice detection model loaded successfully!")
 
 # Extract utils for later use
 get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks = utils
